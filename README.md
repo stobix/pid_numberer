@@ -5,8 +5,8 @@
     * [Setup](pid_numberer#markdown-header-setup)
     * [Dependencies](pid_numberer#markdown-header-dependencies)
 * [Usage](pid_numberer#markdown-header-usage)
-
-* [Examples](pid_numberer#markdown-header-examples)
+    * [Functions](pid_numberer#markdown-header-functions)
+    * [Examples](pid_numberer#markdown-header-examples)
 * [TODO](pid_numberer#markdown-header-todo)
 * [Meta info](pid_numberer#markdown-header-meta)
 
