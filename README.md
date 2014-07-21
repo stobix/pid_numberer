@@ -47,7 +47,7 @@ Name | Arguments | Normal Return Value | Description
 A rather contrived example from the erl terminal.
 
 ```erlang
-[after loading the app and all its dependencies]
+%after loading the app and all its dependencies
 (node@somewhere)8> PrintReg = fun() -> io:format("~p~n",[pid_numberer:register(hej)]) end. % A function that registers itself using pid_numberer,prints its registered name and then exits, freeing up the registered name again.
 ...
 (node@somewhere)9> spawn(PrintReg).
@@ -79,19 +79,22 @@ hej0
 Two ways to spawn several processes of the same module using a minimal pool of names:
 
 * Directly inside an init function
-    ```erlang
+
+```erlang
     ...
     init() ->
         MyName=pid_numberer:register(?MODULE),
         ....
 
-    ```
+```
+
 * By giving a unique name as an argument to a gen server initiating function
-    ```erlang
+
+```erlang
         ...
         gen_server:start_link({local,pid_numberer:reg_name(?MODULE)},?MODULE,StartArgs,Opts),
         ...
-    ```
+```
 
 ## TODO
 
