@@ -84,11 +84,25 @@ bind(Module) ->
         Error -> Error
     end.
 
+%%----------------------------------------------
+%% @doc Registers the current pid to a not yet registered version of Module.
+%%        
+%% Keeps track of when the name becomes available for reregistration.
+%% @todo
+%% @spec (Module) -> non_neg_integer()
+%% @end
+%%----------------------------------------------
 register(Module) ->
     Name=reg_name(Module),
     register(Name,self()),
     Name.
         
+%%----------------------------------------------
+%% @doc Returns a not yet registered version of the module name to be used for process registering
+%% @todo
+%% @spec (Module) -> atom()
+%% @end
+%%----------------------------------------------
 reg_name(Module) ->
     ?MODULE ! {bind,self(),Module,self()},
     Number=receive
