@@ -3,6 +3,13 @@
 %%% @copyright (C) 2014, Joel Ericson
 %%% @doc
 %%%
+%%% The main purpose of this application is to work around Erlang having a limited atom name stack;
+%%% It can be enlightening to have each running server from an application have a distinct name associated with
+%%% the server module's name, but care must be taken to not exhaust the atom name stack. This app keeps track of
+%%% the names of the modules it registers, reusing old names when their corresponding PID's die.
+%%%
+%%%
+%%%
 %%% @end
 %%% Created : 2014-06-17 15:16:20.607252
 %%%-------------------------------------------------------------------
@@ -60,7 +67,7 @@ init(Parent) ->
     loop(Parent, Debug, []).  
   
 %%----------------------------------------------
-%% @doc binds a nonbound number from the general pool to the caller pid.
+%% @doc binds a nonbound number from the general pool to the caller PID.
 %% @todo
 %% @spec () -> non_neg_integer()
 %% @end
@@ -70,7 +77,8 @@ bind() ->
     bind('_').
 
 %%----------------------------------------------
-%% @doc binds a non-bound number from the Module pool to the caller pid.
+%% @doc binds a non-bound number from the Module pool to the caller PID.
+%% All bindings disappear when the PID dies.
 %% @todo
 %% @spec (Module) -> non_neg_integer()
 %% @end
@@ -85,11 +93,13 @@ bind(Module) ->
     end.
 
 %%----------------------------------------------
-%% @doc Registers the current pid to a not yet registered version of Module.
+%% @doc Registers the calling PID to a not yet registered version of Module.
 %%        
-%% Keeps track of when the name becomes available for reregistration.
+%% When the current PID dies, the name will be reused for future registrations
 %% @todo
+%% @equiv erlang:register/2
 %% @spec (Module) -> non_neg_integer()
+%% @returns The name the caller PID got registered as.
 %% @end
 %%----------------------------------------------
 register(Module) ->
@@ -98,8 +108,7 @@ register(Module) ->
     Name.
         
 %%----------------------------------------------
-%% @doc Returns a not yet registered version of the module name to be used for process registering
-%% @todo
+%% @doc Returns a not registered numbered version of the module name to be used for process registering
 %% @spec (Module) -> atom()
 %% @end
 %%----------------------------------------------
@@ -107,13 +116,15 @@ reg_name(Module) ->
     ?MODULE ! {bind,self(),Module,self()},
     Number=receive
         {number,N} -> N;
-        Error -> exit(Error)
+        % No errors implemented yet.
+        Error -> throw(Error)
     end,
     list_to_atom(lists:concat([atom_to_list(Module),Number])).
 
 %%-------------------------------------------------------------------  
 %% Internal Functions  
 %%-------------------------------------------------------------------  
+%% @private
 %% @doc Our main loop, designed to handle system messages.  
 loop(Parent, Debug, State) ->  
     receive  
@@ -173,18 +184,22 @@ loop(Parent, Debug, State) ->
             loop(Parent, Debug, State)  
     end.  
   
+%% @hidden
 %% @doc Called by sys:handle_debug().  
 write_debug(Dev, Event, Name) ->  
     io:format(Dev, "~p event = ~p~n", [Name, Event]).  
   
+%% @hidden
 %% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_continue-3  
 system_continue(Parent, Debug, State) ->  
     loop(Parent, Debug, State).  
   
+%% @hidden
 %% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_terminate-4  
 system_terminate(Reason, _Parent, _Debug, _State) ->  
     exit(Reason).  
   
+%% @hidden
 %% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_code_change-4  
 system_code_change(State, _Module, _OldVsn, _Extra) ->  
     {ok, State}.  
