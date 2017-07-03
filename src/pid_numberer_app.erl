@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @author Joel Ericson
 %%% @private
-%%% @copyright (C) 2014, Joel Ericson
+%%% @copyright {@date}, Joel Ericson
 %%% @doc
 %%%
 %%% @end

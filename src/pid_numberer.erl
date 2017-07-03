@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
 %%% @author Joel Ericson
-%%% @copyright (C) 2014, Joel Ericson
+%%% @copyright {@date}, Joel Ericson
 %%% @doc
 %%%
 %%% The main purpose of this application is to work around Erlang having a limited atom name stack;
@@ -67,7 +67,9 @@ init(Parent) ->
     loop(Parent, Debug, []).  
   
 %%----------------------------------------------
-%% @doc binds a nonbound number from the general pool to the caller PID.
+%% @doc binds a non-bound number from the general pool to the caller PID.
+%%
+%% All numbers bound to the PID become non-bound when the PID dies.
 %% @todo
 %% @spec () -> non_neg_integer()
 %% @end
@@ -78,7 +80,8 @@ bind() ->
 
 %%----------------------------------------------
 %% @doc binds a non-bound number from the Module pool to the caller PID.
-%% All bindings disappear when the PID dies.
+%%
+%% All numbers bound to the PID become non-bound when the PID dies.
 %% @todo
 %% @spec (Module) -> non_neg_integer()
 %% @end
@@ -94,8 +97,10 @@ bind(Module) ->
 
 %%----------------------------------------------
 %% @doc Registers the calling PID to a not yet registered version of Module.
+%%
+%% The calling PID must not be registered before.
 %%        
-%% When the current PID dies, the name will be reused for future registrations
+%% When the PID dies, the name will be reused for future registrations
 %% @todo
 %% @equiv erlang:register/2
 %% @spec (Module) -> non_neg_integer()
@@ -109,6 +114,8 @@ register(Module) ->
         
 %%----------------------------------------------
 %% @doc Returns a not registered numbered version of the module name to be used for process registering
+%%
+%% erlang:register/2 throws an error badarg if the PID is already registered
 %% @spec (Module) -> atom()
 %% @end
 %%----------------------------------------------
@@ -190,17 +197,17 @@ write_debug(Dev, Event, Name) ->
     io:format(Dev, "~p event = ~p~n", [Name, Event]).  
   
 %% @hidden
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_continue-3  
+%% @doc http://www.erlang.org/doc/man/sys.html#Module:system_continue-3  
 system_continue(Parent, Debug, State) ->  
     loop(Parent, Debug, State).  
   
 %% @hidden
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_terminate-4  
+%% @doc http://www.erlang.org/doc/man/sys.html#Module:system_terminate-4  
 system_terminate(Reason, _Parent, _Debug, _State) ->  
     exit(Reason).  
   
 %% @hidden
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_code_change-4  
+%% @doc http://www.erlang.org/doc/man/sys.html#Module:system_code_change-4  
 system_code_change(State, _Module, _OldVsn, _Extra) ->  
     {ok, State}.  
 
